@@ -7,6 +7,9 @@
 *  12KBytes RAM
 */
 
+/* End of RAM and top of stack: 0x20003000 */
+_stack_top = ORIGIN(RAM) + LENGTH(RAM);
+
 /* The MEMORY command describes the location and size of blocks of memory in the target. */
 MEMORY
 {

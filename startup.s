@@ -1,6 +1,8 @@
+// ARM directive to allow ARM and THUMB based instructions together
+.syntax unified
+
+// Make reset_handler globally visible so the linker can find it
+.global reset_handler
 
 reset_handler:
-    ldr sp, =reset_location // Load stack pointer register with reset address
-
-.data
-reset_location: .word 0x08000000
+    ldr sp, =_stack_top
