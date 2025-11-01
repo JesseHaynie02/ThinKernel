@@ -6,3 +6,10 @@
 
 reset_handler:
     ldr sp, =_stack_top
+
+    b   main
+
+.vector
+vector_table:
+    .word _stack_top
+    .word reset_handler

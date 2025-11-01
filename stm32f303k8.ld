@@ -25,12 +25,8 @@ ENTRY(reset_handler)
 
 SECTIONS
 {
-    /* Set location counter to 0x08000000 */
-    . = 0x08000000;
-    /* Define .text as output section. */
-    /* Specify any input object that contains a .text sections should go here. */
-    .text : { *(.text) }
-    . = 0x20000000;
-    .data : { *(.data) }
-    .bss : { *(.bss) }
+    .vector : { *(.vector) } > FLASH
+    .text : { *(.text) } >  FLASH
+    .data : { *(.data) } > RAM
+    .bss : { *(.bss) } > RAM
 }
