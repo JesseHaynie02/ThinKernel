@@ -27,6 +27,15 @@ SECTIONS
 {
     .vector : { *(.vector) } > FLASH
     .text : { *(.text) } >  FLASH
-    .data : { *(.data) } > RAM
-    .bss : { *(.bss) } > RAM
+    .data : {
+                _sdata = .;
+                *(.data)
+                _edata = .;
+            } > RAM AT > FLASH
+    _ldata = LOADADDR(.data);
+    .bss : {
+                _sbss = .;
+                *(.bss)
+                _ebss = .;
+            } > RAM
 }
