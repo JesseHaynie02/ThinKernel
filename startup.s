@@ -33,7 +33,7 @@ zero_initialize_bss:
     mov r2, #0x0
     zero_loop:
         cmp r0, r1
-        blge main
+        bge main
         str r2, [r0]
         add r0, #0x4
         b zero_loop
