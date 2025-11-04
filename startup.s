@@ -13,23 +13,30 @@
 reset_handler:
     ldr sp, =_stack_top
     b   copy_data_to_ram
-    b   main
 
 copy_data_to_ram:
     ldr r0, =_ldata
     ldr r1, =_sdata
     ldr r2, =_edata
-    loop:
+    copy_loop:
         cmp r1, r2
         bge zero_initialize_bss
         ldr r3, [r0]
         str r3, [r1]
         add r0, #0x4
         add r1, #0x4
-        b loop
+        b copy_loop
 
 zero_initialize_bss:
-    nop
+    ldr r0, =_sbss
+    ldr r1, =_ebss
+    mov r2, #0x0
+    zero_loop:
+        cmp r0, r1
+        blge main
+        str r2, [r0]
+        add r0, #0x4
+        b zero_loop
 
 .section .vector, "a"
 vector_table:
