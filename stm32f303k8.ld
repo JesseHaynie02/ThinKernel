@@ -25,8 +25,18 @@ ENTRY(reset_handler)
 
 SECTIONS
 {
-    .vector : { *(.vector) } > FLASH
-    .text : { *(.text) } >  FLASH
+    .vector :
+    {
+        . = ALIGN(4);
+        KEEP(*(.vector))
+        . = ALIGN(4);
+    } > FLASH
+    .text :
+    {
+        . = ALIGN(4);
+        *(.text)
+        . = ALIGN(4);
+    } >  FLASH
     .data : {
                 _sdata = .;
                 *(.data)

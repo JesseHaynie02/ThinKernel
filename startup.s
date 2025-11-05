@@ -10,6 +10,9 @@
 .global _sbss
 .global _ebss
 
+    .section    .text.reset_handler
+    .type   reset_handler, %function
+
 reset_handler:
     ldr sp, =_stack_top
     b   copy_data_to_ram
