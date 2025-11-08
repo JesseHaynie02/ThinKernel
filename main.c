@@ -4,6 +4,19 @@
 
 #include "stm32f303x8.h"
 
+#define HSI_VALUE           ( (uint32_t)8000000U )  /* Value of the Internal oscillator in Hz */
+#define ONE_THOUSAND_HERTZ  ( (uint32_t)1000U )
+#define SYS_TICK_RELOAD     ( (HSI_VALUE / ONE_THOUSAND_HERTZ) - 1 )
+
+void initSysTick()
+{
+    SysTick->LOAD = SYS_TICK_RELOAD;
+    SysTick->VAL = 0U;
+    SysTick->CTRL |= (SysTick_CTRL_CLKSOURCE_Msk +
+                      SysTick_CTRL_TICKINT_Msk +
+                      SysTick_CTRL_TICKINT_Msk);
+}
+
 void delay(volatile uint32_t count)
 {
     while (count--) __asm__("nop");
@@ -11,6 +24,8 @@ void delay(volatile uint32_t count)
 
 void main()
 {
+    initSysTick();
+
     // Enable GPIO B Port
     RCC->AHBENR |= RCC_AHBENR_GPIOBEN;
 
