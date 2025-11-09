@@ -65,6 +65,8 @@ vector_table:
 
 .section .text.default_handlers, "ax", %progbits
 
+.weak systick_handler
+
 nmi_handler:
 hardfault_manager:
 memmanage_handler:

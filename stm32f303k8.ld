@@ -38,14 +38,18 @@ SECTIONS
         . = ALIGN(4);
     } >  FLASH
     .data : {
+                . = ALIGN(4);
                 _sdata = .;
                 *(.data)
+                . = ALIGN(4);
                 _edata = .;
             } > RAM AT > FLASH
     _ldata = LOADADDR(.data);
+    . = ALIGN(4);
     .bss : {
                 _sbss = .;
                 *(.bss)
+                . = ALIGN(4);
                 _ebss = .;
             } > RAM
 }
