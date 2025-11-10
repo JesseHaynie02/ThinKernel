@@ -26,15 +26,24 @@ bool create_task( uint32_t task_id, uint32_t priority, bool startit, void (*entr
 
     if ( startit )
     {
-        // If new task is a higher priority than current task
-        if ( running->priority < new_task->priority )
+        // First task created
+        if ( running == NULL )
         {
-            // Move running task into ready list and new task to running
-            // Update task state and perform context switch into entry_point
+            running = new_task;
+            new_task->task_state = TASK_STATE_RUNNING;
+            new_task->entry_point();
         }
         else
         {
-            // Move new task to ready list and update task state
+            new_task->task_state = TASK_STATE_READY;
+            ready_list[task_id] = new_task;
         }
     }
+    else
+    {
+        new_task->task_state = TASK_STATE_BLOCKED;
+        blocked_list[task_id] = new_task;
+    }
+
+    return true;
 }
