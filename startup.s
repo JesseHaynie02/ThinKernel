@@ -65,8 +65,6 @@ vector_table:
 
 .section .text.default_handlers, "ax", %progbits
 
-.weak systick_handler
-
 nmi_handler:
 hardfault_manager:
 memmanage_handler:
@@ -74,8 +72,6 @@ busfault_handler:
 usagefault_handler:
 svc_handler:
 debugmon_handler:
-pendsv_handler:
-systick_handler:
 irq_handler:
 default_handler:
     b default_handler
