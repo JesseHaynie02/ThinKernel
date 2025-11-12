@@ -16,6 +16,7 @@ typedef enum
 
 typedef struct
 {
+    uint32_t* stack_ptr;
     uint32_t task_id;
     uint32_t priority;
     TaskState_t task_state;
