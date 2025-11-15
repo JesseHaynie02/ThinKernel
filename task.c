@@ -1,4 +1,4 @@
-#include "task.h"
+#include "thinkernel.h"
 
 bool create_task( uint32_t task_id, uint32_t priority, bool startit, void (*entry_point)() )
 {

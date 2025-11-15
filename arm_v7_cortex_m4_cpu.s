@@ -1,3 +1,8 @@
+.syntax unified
+.thumb
+
+.global pendsv_handler
+.type pendsv_handler, %function
 
 // Interrupt handler for system level service used for context switching
 // pendsv should be set to the lowest priority interrupt
@@ -73,7 +78,3 @@ load_next_task:
     // Reenable interrupts and return
     cpsie   i
     bx      lr
-
-    align
-
-    end
