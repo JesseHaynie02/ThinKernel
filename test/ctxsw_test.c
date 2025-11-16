@@ -1,20 +1,11 @@
 
 #include "thinkernel.h"
 
-// Task struct to emulate a real task
-// except this one just holds the stack pointer
-// to test context switching.
-typedef struct
-{
-    uint32_t* stck_ptr;
-} Tasktst_t;
+#define TASK_ONE_STACK_SIZE ( 0x400U )
 
-Tasktst_t* curr_task_ptr;
-Tasktst_t* highest_prio_task_ptr;
-
-uint32_t task1_stack[0x400];
-Tasktst_t task1_tcb;
-Tasktst_t* task1_tcb_ptr = &task1_tcb;
+uint32_t task1_stack[TASK_ONE_STACK_SIZE];
+Task_t task1_tcb;
+Task_t* task1_tcb_ptr = &task1_tcb;
 
 void task1()
 {
@@ -38,42 +29,52 @@ void exit_task()
 
 void ctxsw_test()
 {
-    uint32_t* task1_stck_loc = task1_stack + 0x400;
+    // Descening stack so location starts at the highest address
+    uint32_t* task1_stck_loc = task1_stack + TASK_ONE_STACK_SIZE;
 
-    uint32_t* stack_ptr = task1_stck_loc;
-    stack_ptr = (uint32_t *)((uint32_t)stack_ptr & 0xFFFFFFF8U);  // 8-byte align
+    // Make sure the stack location is 32 bit aligned
+    task1_stck_loc = (uint32_t *)((uint32_t)task1_stck_loc & 0xFFFFFFF8U);
 
-    // cortex-m4 uses descending stack. Need to store exception frame onto stack for a new task.
-    // R0, R1, R2, R3, R12, LR, PC, xPSR
-    *(--stack_ptr) = 0x01000000U;
-    *(--stack_ptr) = (uint32_t)task1;
-    *(--stack_ptr) = (uint32_t)exit_task;
-    *(--stack_ptr) = 0x12121212U;
-    *(--stack_ptr) = 0x03030303U;
-    *(--stack_ptr) = 0x02020202U;
-    *(--stack_ptr) = 0x01010101U;
-    *(--stack_ptr) = 0x00000000U;
+    /************************************ Exception Frame ************************************/
+    // Need to store exception frame onto stack for a new task.
+    *(--task1_stck_loc) = 0x01000000U;          // xPSR, execute instructions in thumb state
+    *(--task1_stck_loc) = (uint32_t)task1;      // PC, entry point for this task
+    *(--task1_stck_loc) = (uint32_t)exit_task;  // LR, exit point for this task
 
-    *(--stack_ptr) = 0xFFFFFFFDUL;
-    *(--stack_ptr) = 0x11111111U;
-    *(--stack_ptr) = 0x10101010U;
-    *(--stack_ptr) = 0x09090909U;
-    *(--stack_ptr) = 0x08080808U;
-    *(--stack_ptr) = 0x07070707U;
-    *(--stack_ptr) = 0x06060606U;
-    *(--stack_ptr) = 0x05050505U;
-    *(--stack_ptr) = 0x04040404U;
+    // Prefill R0, R1, R2, R3, R12
+    *(--task1_stck_loc) = 0x12121212U;
+    *(--task1_stck_loc) = 0x03030303U;
+    *(--task1_stck_loc) = 0x02020202U;
+    *(--task1_stck_loc) = 0x01010101U;
+    *(--task1_stck_loc) = 0x00000000U;
+    /************************************ Exception Frame ************************************/
 
-    task1_tcb_ptr->stck_ptr = stack_ptr;
+    // Store the rest of the registers that aren't in the exception frame onto the stack
+    // R4, R5, R6, R7, R8, R9, R10, R11, LR
+    *(--task1_stck_loc) = 0xFFFFFFFDUL;     // LR, tells the exception handler how to return
 
-    NVIC_SetPriority(PendSV_IRQn, 15);
+    // Prefill R4, R5, R6, R7, R8, R9, R10, R11
+    *(--task1_stck_loc) = 0x11111111U;
+    *(--task1_stck_loc) = 0x10101010U;
+    *(--task1_stck_loc) = 0x09090909U;
+    *(--task1_stck_loc) = 0x08080808U;
+    *(--task1_stck_loc) = 0x07070707U;
+    *(--task1_stck_loc) = 0x06060606U;
+    *(--task1_stck_loc) = 0x05050505U;
+    *(--task1_stck_loc) = 0x04040404U;
+
+    // Set this task as the next highest ready to run task
     highest_prio_task_ptr = task1_tcb_ptr;
-    curr_task_ptr = NULL;
+    task1_tcb_ptr->stack_ptr = task1_stck_loc;
 
-    SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk; // PendSV pending
+    // Set the PendSV interrupt as the lowest priority
+    NVIC_SetPriority(PendSV_IRQn, (1 << __NVIC_PRIO_BITS) - 1);
+
+    // Trigger the PendSV interrupt and wait for the context switch to occur
+    SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk;
     __DSB();
     __ISB();
-    while(1); // Wait for context switch
+    while(1) {};
 }
 
 void main()
