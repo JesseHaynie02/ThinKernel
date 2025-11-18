@@ -49,4 +49,6 @@ extern Task_t* ready_list[MAX_NUM_TASKS];
 // void yield_task(uint32_t task_id);
 /* Task */
 
+void init_thinkernel();
+
 #endif

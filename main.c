@@ -2,11 +2,6 @@
 
 #include "thinkernel.h"
 
-void delay(volatile uint32_t count)
-{
-    while (count--) __asm__("nop");
-}
-
 void main()
 {
     init_systick();
