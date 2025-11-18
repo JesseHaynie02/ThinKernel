@@ -31,10 +31,12 @@ typedef enum
 typedef struct
 {
     uint32_t* stack_ptr;
+    uint32_t stack_limit;
     uint32_t task_id;
     uint32_t priority;
     TaskState_t task_state;
-    void (*entry_point)();
+    Task_t* next;
+    Task_t* prev;
 } Task_t;
 
 extern uint32_t task_bitmap;
@@ -44,11 +46,15 @@ extern Task_t* curr_task_ptr;
 extern Task_t* highest_prio_task_ptr;
 extern Task_t* ready_list[MAX_NUM_TASKS];
 
-// bool create_task(uint32_t task_id, uint32_t priority, bool startit, void (*entry_point)(), uint32_t* stack_address, uint32_t stack_length);
+// TODO: Figure out a way to not expose this function
+void init_stack( Task_t* task, uint32_t* stack_addr, uint32_t stack_size, void (*entry_point)() );
+
+bool create_task( uint32_t task_id, uint32_t priority, Task_t* task, uint32_t* stack_addr, uint32_t stack_size, void (*entry_point)() );
 // void run_task(uint32_t task_id);
 // void yield_task(uint32_t task_id);
+void exit_task();
 /* Task */
 
-void init_thinkernel();
+void start_thinkernel();
 
 #endif
