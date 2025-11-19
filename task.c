@@ -51,19 +51,20 @@ void init_stack( Task_t* task, uint32_t* stack_addr, uint32_t stack_size, void (
 
 bool create_task( uint32_t task_id, uint32_t priority, Task_t* task, uint32_t* stack_addr, uint32_t stack_size, void (*entry_point)() )
 {
-    if ( task_id >= MAX_NUM_TASKS || priority >= MAX_PRIORITY)
+    if ( task_id >= MAX_NUM_TASKS || priority >= MAX_PRIORITY )
         return false;
     // If task with task id already exists
-    if ( task_bitmap & (1 << task_id) )
+    if ( task_bitmap & (1 << task_id) && task_list[task_id] == NULL )
         return false;
     if ( entry_point == NULL )
         return false;
     // If stack_addr or stack_size is not 32-bit aligned
-    if (((uint32_t)stack_addr & 0x3U) != 0 || (stack_size & 0x3U) != 0)
+    if ( ((uint32_t)stack_addr & 0x3U) != 0 || (stack_size & 0x3U) != 0 )
         return false;
 
     // Register new task
     task_bitmap |= (1 << task_id);
+    task_list[task_id] = task;
 
     init_stack(task, stack_addr, stack_size, entry_point);
 
@@ -93,4 +94,17 @@ bool create_task( uint32_t task_id, uint32_t priority, Task_t* task, uint32_t* s
     ready_bitmap |= (1 << task->priority);
 
     return true;
+}
+
+bool yield_task(uint32_t task_id)
+{
+    // if ( task_list[task_id] == NULL )
+    //     return false;
+
+    // Task_t* task = task_list[task_id];
+
+    // if (task->task_state == )
+    // {
+
+    // }
 }
