@@ -28,15 +28,15 @@ typedef enum
     TASK_STATE_TERMINATED
 } TaskState_t;
 
-typedef struct
+typedef struct Task
 {
     uint32_t* stack_ptr;
-    uint32_t stack_limit;
+    uint32_t* stack_limit;
     uint32_t task_id;
     uint32_t priority;
     TaskState_t task_state;
-    Task_t* next;
-    Task_t* prev;
+    struct Task* next;
+    struct Task* prev;
 } Task_t;
 
 extern uint32_t task_bitmap;
@@ -55,6 +55,8 @@ bool yield_task(uint32_t task_id);
 void exit_task();
 /* Task */
 
+void context_switch();
+void schedule();
 void start_thinkernel();
 
 #endif
