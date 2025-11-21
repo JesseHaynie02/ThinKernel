@@ -119,13 +119,26 @@ bool yield_task(uint32_t task_id)
     Task_t* head = ready_list[task->priority];
     Task_t* tail = head->prev;
 
-    task->next->prev = task->prev;
-    task->prev->next = task->next;
+    // Nothing to do
+    if (task == tail)
+    {
+        return true;
+    }
 
-    task->next = head;
-    task->prev = tail;
-    tail->next = task;
-    head->prev = task;
+    if (task == head)
+    {
+        ready_list[task->priority] = head->next;
+    }
+    else
+    {
+        task->next->prev = task->prev;
+        task->prev->next = task->next;
+
+        task->next = head;
+        task->prev = tail;
+        tail->next = task;
+        head->prev = task;
+    }
 
     ready_list[task->priority] = task->next;
 
