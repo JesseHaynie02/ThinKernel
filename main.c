@@ -2,10 +2,14 @@
 
 #include "thinkernel.h"
 
-void main()
-{
-    init_systick();
+#define TASK_ONE_STACK_SIZE ( 0x200U )
 
+uint32_t task1_stack[TASK_ONE_STACK_SIZE];
+Task_t task1_tcb;
+Task_t* task1_tcb_ptr = &task1_tcb;
+
+void task1()
+{
     // Enable GPIO B Port
     RCC->AHBENR |= RCC_AHBENR_GPIOBEN;
 
@@ -23,4 +27,10 @@ void main()
             systick_ctr--;
         }
     }
+}
+
+void main()
+{
+    create_task(0x0, 0x8, task1_tcb_ptr, task1_stack, TASK_ONE_STACK_SIZE, task1);
+    start_thinkernel();
 }

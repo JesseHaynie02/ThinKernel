@@ -2,7 +2,7 @@
 
 #define TASK_IDLE_SIZE ( 0x48U )
 
-uint32_t task1_stack[TASK_IDLE_SIZE];
+uint32_t idle_stack[TASK_IDLE_SIZE];
 Task_t idle_task;
 Task_t* idle_task_ptr = &idle_task;
 
@@ -52,7 +52,7 @@ void start_thinkernel()
 
     // TODO: Wrap the creation of a task from the kernel into a kernel call
     // that is not available to the API
-    init_stack(idle_task_ptr, task1_stack, TASK_IDLE_SIZE, idle_loop);
+    init_stack(idle_task_ptr, idle_stack, TASK_IDLE_SIZE, idle_loop);
     idle_task_ptr->task_id = 0;
     idle_task_ptr->priority = 0;
     idle_task_ptr->task_state = TASK_STATE_READY;
