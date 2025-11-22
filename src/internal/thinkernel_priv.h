@@ -10,6 +10,7 @@ extern Task_t* curr_task_ptr;
 extern Task_t* highest_prio_task_ptr;
 extern Task_t* ready_list[MAX_NUM_TASKS];
 extern Task_t* task_list[MAX_NUM_TASKS];
+extern Task_t* delay_list;
 
 void init_systick();
 void init_stack( Task_t* task, uint32_t* stack_addr, uint32_t stack_size, void (*entry_point)() );

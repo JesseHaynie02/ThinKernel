@@ -25,6 +25,7 @@ struct Task
     uint32_t task_id;
     uint32_t priority;
     TaskState_t task_state;
+    uint32_t delay;
     struct Task* next;
     struct Task* prev;
 };
@@ -33,6 +34,7 @@ extern uint32_t systick_ctr;
 
 bool create_task( uint32_t task_id, uint32_t priority, Task_t* task, uint32_t* stack_addr, uint32_t stack_size, void (*entry_point)() );
 bool yield_task(uint32_t task_id);
+bool delay_task(uint32_t ms);
 void exit_task();
 
 void start_thinkernel();

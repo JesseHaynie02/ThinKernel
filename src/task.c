@@ -9,6 +9,7 @@ Task_t* curr_task_ptr = NULL;
 Task_t* highest_prio_task_ptr = NULL;
 Task_t* ready_list[MAX_NUM_TASKS];
 Task_t* task_list[MAX_NUM_TASKS];
+Task_t* delay_list = NULL;
 
 // TODO: Implement proper handling of a task that ended up here
 void exit_task()
@@ -78,6 +79,7 @@ bool create_task( uint32_t task_id, uint32_t priority, Task_t* task, uint32_t* s
     task->task_id = task_id;
     task->priority = priority;
     task->task_state = TASK_STATE_READY;
+    task->delay = 0;
     task->next = NULL;
     task->prev = NULL;
 
@@ -105,6 +107,9 @@ bool create_task( uint32_t task_id, uint32_t priority, Task_t* task, uint32_t* s
 
 bool yield_task(uint32_t task_id)
 {
+    if (task_id >= MAX_NUM_TASKS)
+        return false;
+
     Task_t* task = task_list[task_id];
 
     // If task is not registered in bitmap or task is null
@@ -123,9 +128,7 @@ bool yield_task(uint32_t task_id)
 
     // Nothing to do
     if (task == tail)
-    {
         return true;
-    }
 
     if (task == head)
     {
@@ -150,6 +153,47 @@ bool yield_task(uint32_t task_id)
     if (curr_task_ptr != highest_prio_task_ptr)
     {
         context_switch();
+    }
+
+    return true;
+}
+
+// TODO: Do we need to disable context switching?
+
+bool delay_task(uint32_t ms)
+{
+    if (curr_task_ptr->task_state != TASK_STATE_RUNNING)
+        return false;
+
+    curr_task_ptr->delay = ms;
+    curr_task_ptr->task_state = TASK_STATE_BLOCKED;
+    curr_task_ptr->next = NULL;
+    curr_task_ptr->prev = NULL;
+
+    Task_t* task = delay_list;
+    Task_t* prev = NULL;
+
+    while (task != NULL && curr_task_ptr->delay >= task->delay)
+    {
+        curr_task_ptr->delay -= task->delay;
+        prev = task;
+        task = task->next;
+    }
+
+    curr_task_ptr->next = task;
+
+    if (task)
+    {
+        task->delay -= curr_task_ptr->delay;
+    }
+
+    if (prev)
+    {
+        prev->next = curr_task_ptr;
+    }
+    else
+    {
+        delay_list = curr_task_ptr;
     }
 
     return true;
