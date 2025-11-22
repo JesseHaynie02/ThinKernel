@@ -3,6 +3,9 @@
 #include "thinkernel.h"
 #include "stm32f303x8.h"
 
+#define TASK_ONE_ID ( 0x0U )
+#define TASK_TWO_ID ( 0x1U )
+
 #define TASK_ONE_STACK_SIZE ( 0x200U )
 #define TASK_TWO_STACK_SIZE ( 0x200U )
 
@@ -40,7 +43,7 @@ void task1()
 
             if (++task1_ctr % 100 == 0)
             {
-                yield_task(0x0);
+                yield_task(TASK_ONE_ID);
             }
         }
     }
@@ -70,7 +73,7 @@ void task2()
 
             if (++task2_ctr % 50 == 0)
             {
-                yield_task(0x1);
+                yield_task(TASK_TWO_ID);
             }
         }
     }
@@ -85,7 +88,7 @@ void main()
     GPIOB->MODER &= ~(GPIO_MODER_MODER3);
     GPIOB->MODER |= GPIO_MODER_MODER3_0;
 
-    create_task(0x0, 0x8, task1_tcb_ptr, task1_stack, TASK_ONE_STACK_SIZE, task1);
-    create_task(0x1, 0x8, task2_tcb_ptr, task2_stack, TASK_TWO_STACK_SIZE, task2);
+    create_task(TASK_ONE_ID, 0x8, task1_tcb_ptr, task1_stack, TASK_ONE_STACK_SIZE, task1);
+    create_task(TASK_TWO_ID, 0x8, task2_tcb_ptr, task2_stack, TASK_TWO_STACK_SIZE, task2);
     start_thinkernel();
 }
