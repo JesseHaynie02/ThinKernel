@@ -1,6 +1,7 @@
 // arm-none-eabi-gcc -mcpu=cortex-m4 -mthumb -g -nostdlib -nostartfiles -ffreestanding -O0 -Wl,-Map=output.map -Idrivers/stm32 -Idrivers/cmsis -T stm32f303k8.ld startup.s systick.c main.c
 
 #include "thinkernel.h"
+#include "stm32f303x8.h"
 
 #define TASK_ONE_STACK_SIZE ( 0x200U )
 #define TASK_TWO_STACK_SIZE ( 0x200U )
@@ -12,6 +13,8 @@ Task_t* task1_tcb_ptr = &task1_tcb;
 uint32_t task2_stack[TASK_TWO_STACK_SIZE];
 Task_t task2_tcb;
 Task_t* task2_tcb_ptr = &task2_tcb;
+
+// TODO: Remove use of systick counter variable
 
 void task1()
 {

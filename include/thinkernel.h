@@ -8,7 +8,6 @@
 #define MAX_NUM_TASKS ( 32U )   // Range of IDs is 0-31
 #define MAX_PRIORITY  ( 255U )  // Range of Priorities is 0-255
 
-/* Task */
 typedef struct Task Task_t;
 
 typedef enum
@@ -19,10 +18,22 @@ typedef enum
     TASK_STATE_TERMINATED
 } TaskState_t;
 
+struct Task
+{
+    uint32_t* stack_ptr;
+    uint32_t* stack_limit;
+    uint32_t task_id;
+    uint32_t priority;
+    TaskState_t task_state;
+    struct Task* next;
+    struct Task* prev;
+};
+
+extern uint32_t systick_ctr;
+
 bool create_task( uint32_t task_id, uint32_t priority, Task_t* task, uint32_t* stack_addr, uint32_t stack_size, void (*entry_point)() );
 bool yield_task(uint32_t task_id);
 void exit_task();
-/* Task */
 
 void start_thinkernel();
 

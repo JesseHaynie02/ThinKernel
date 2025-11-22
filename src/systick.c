@@ -1,4 +1,6 @@
-#include "thinkernel.h"
+#include "thinkernel_priv.h"
+
+#include "stm32f303x8.h" // TODO: Relocate platform specific calls
 
 #define HSI_VALUE           ( (uint32_t)8000000U )  // Value of the Internal oscillator in Hz
 #define TEN_HERTZ           ( (uint32_t)10U )

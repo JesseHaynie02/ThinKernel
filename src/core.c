@@ -1,4 +1,6 @@
-#include "thinkernel.h"
+#include "thinkernel_priv.h"
+
+#include "stm32f303x8.h" // TODO: Relocate platform specific calls
 
 #define TASK_IDLE_SIZE ( 0x48U )
 

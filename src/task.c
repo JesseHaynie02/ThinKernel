@@ -1,4 +1,6 @@
-#include "thinkernel.h"
+#include "thinkernel_priv.h"
+
+// TODO: Relocate platform specific functionality
 
 uint32_t task_bitmap = 0U;
 uint32_t ready_bitmap = 0U;
@@ -79,7 +81,7 @@ bool create_task( uint32_t task_id, uint32_t priority, Task_t* task, uint32_t* s
     task->next = NULL;
     task->prev = NULL;
 
-    // Insert into ready list update ready_bitmap
+    // Insert into ready list update ready bitmap
     Task_t* head = ready_list[task->priority];
     if (head == NULL)
     {
