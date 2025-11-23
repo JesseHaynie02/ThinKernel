@@ -162,11 +162,29 @@ bool yield_task(uint32_t task_id)
 
 bool delay_task(uint32_t ms)
 {
-    if (curr_task_ptr->task_state != TASK_STATE_RUNNING)
+    if (ms == 0)
+        return false;
+    // TODO: State should be running only but need to figure out how to update running correctly
+    if (curr_task_ptr->task_state != TASK_STATE_READY)
+        return false;
+    if (curr_task_ptr != ready_list[curr_task_ptr->priority])
         return false;
 
     curr_task_ptr->delay = ms;
     curr_task_ptr->task_state = TASK_STATE_BLOCKED;
+
+    if (curr_task_ptr != curr_task_ptr->next && curr_task_ptr != curr_task_ptr->prev)
+    {
+        ready_list[curr_task_ptr->priority] = curr_task_ptr->next;
+        curr_task_ptr->prev->next = curr_task_ptr->next;
+        curr_task_ptr->next->prev = curr_task_ptr->prev;
+    }
+    else
+    {
+        ready_list[curr_task_ptr->priority] = NULL;
+        ready_bitmap &= ~(1 << curr_task_ptr->priority);
+    }
+
     curr_task_ptr->next = NULL;
     curr_task_ptr->prev = NULL;
 
@@ -194,6 +212,14 @@ bool delay_task(uint32_t ms)
     else
     {
         delay_list = curr_task_ptr;
+    }
+
+    // Switch to highest priority ready to run task if it changed
+    schedule();
+
+    if (curr_task_ptr != highest_prio_task_ptr)
+    {
+        context_switch();
     }
 
     return true;

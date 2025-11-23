@@ -21,29 +21,23 @@ Task_t* task2_tcb_ptr = &task2_tcb;
 
 void task1()
 {
+    uint32_t last_toggle = 0;
     uint32_t task1_ctr = 0;
 
-    while(1)
+    while (1)
     {
-        if (SysTick->LOAD != 799999U)
-        {
-            SysTick->LOAD = 799999U;
-            SysTick->VAL = 0U;
-            SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk
-                            | SysTick_CTRL_TICKINT_Msk
-                            | SysTick_CTRL_ENABLE_Msk;
-        }
+        uint32_t curr_tick = systick_ctr;
 
-        // Polling for systick trigger
-        if (systick_ctr > 0)
+        if ((curr_tick - last_toggle) >= 100)
         {
-            // Toggle GPIO PB3 LD3
+            last_toggle = curr_tick;
+
             GPIOB->ODR ^= GPIO_ODR_3;
-            systick_ctr--;
 
-            if (++task1_ctr % 100 == 0)
+            if (++task1_ctr == 100)
             {
-                yield_task(TASK_ONE_ID);
+                delay_task(10000);
+                task1_ctr = 0;
             }
         }
     }
@@ -51,29 +45,23 @@ void task1()
 
 void task2()
 {
+    uint32_t last_toggle = 0;
     uint32_t task2_ctr = 0;
 
-    while(1)
+    while (1)
     {
-        if (SysTick->LOAD != 1599999U)
-        {
-            SysTick->LOAD = 1599999U;
-            SysTick->VAL = 0U;
-            SysTick->CTRL = SysTick_CTRL_CLKSOURCE_Msk
-                            | SysTick_CTRL_TICKINT_Msk
-                            | SysTick_CTRL_ENABLE_Msk;
-        }
+        uint32_t curr_tick = systick_ctr;
 
-        // Polling for systick trigger
-        if (systick_ctr > 0)
+        if ((curr_tick - last_toggle) >= 200)
         {
-            // Toggle GPIO PB3 LD3
+            last_toggle = curr_tick;
+
             GPIOB->ODR ^= GPIO_ODR_3;
-            systick_ctr--;
 
-            if (++task2_ctr % 50 == 0)
+            if (++task2_ctr == 50)
             {
-                yield_task(TASK_TWO_ID);
+                delay_task(10000);
+                task2_ctr = 0;
             }
         }
     }
