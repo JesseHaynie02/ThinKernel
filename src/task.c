@@ -62,7 +62,7 @@ bool create_task( uint32_t task_id, uint32_t priority, Task_t* task, uint32_t* s
     if ( task_id >= MAX_NUM_TASKS || priority >= MAX_PRIORITY )
         return false;
     // If task with task id already exists
-    if ( task_bitmap & (1 << task_id) || task_list[task_id] != NULL )
+    if ( task_bitmap & (1U << task_id) || task_list[task_id] != NULL )
         return false;
     if ( entry_point == NULL )
         return false;
@@ -71,7 +71,7 @@ bool create_task( uint32_t task_id, uint32_t priority, Task_t* task, uint32_t* s
         return false;
 
     // Register new task
-    task_bitmap |= (1 << task_id);
+    task_bitmap |= (1U << task_id);
     task_list[task_id] = task;
 
     init_stack(task, stack_addr, stack_size, entry_point);
