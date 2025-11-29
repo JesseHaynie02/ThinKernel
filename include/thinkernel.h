@@ -47,8 +47,8 @@ bool delay_task(uint32_t ms);
 void exit_task();
 
 bool create_semaphore(uint32_t sem_id, Sem_t* semaphore, uint32_t init_val);
-void post_semaphore(uint32_t sem_id);
-void wait_for_semaphore(uint32_t sem_id);
+bool post_semaphore(uint32_t sem_id);
+bool wait_for_semaphore(uint32_t sem_id);
 
 void start_thinkernel();
 
