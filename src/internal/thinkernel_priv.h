@@ -3,6 +3,9 @@
 
 #include "thinkernel.h"
 
+#define BASEPRI_MASK_PENDSV_SYSTICK   14U
+#define BASEPRI_UNMASK_ALL            0U
+
 extern uint32_t task_bitmap;
 extern uint32_t sem_bitmap;
 extern uint32_t ready_bitmap;

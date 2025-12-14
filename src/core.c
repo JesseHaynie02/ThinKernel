@@ -31,7 +31,7 @@ void context_switch()
 void schedule()
 {
     // if no task is ready to run switch to the idle task
-    // else get the highest priority ready to run task and run it
+    // else get and set the highest priority ready to run task
     if (!ready_bitmap)
     {
         highest_prio_task_ptr = idle_task_ptr;
@@ -47,7 +47,11 @@ void start_thinkernel()
 {
     __set_PSP(0U);
 
-    // Set the PendSV interrupt as the lowest priority
+    NVIC_SetPriority(MemoryManagement_IRQn, (1 << __NVIC_PRIO_BITS) - 6);
+    NVIC_SetPriority(BusFault_IRQn, (1 << __NVIC_PRIO_BITS) - 5);
+    NVIC_SetPriority(UsageFault_IRQn, (1 << __NVIC_PRIO_BITS) - 4);
+    NVIC_SetPriority(SVCall_IRQn, (1 << __NVIC_PRIO_BITS) - 3);
+    NVIC_SetPriority(SysTick_IRQn, (1 << __NVIC_PRIO_BITS) - 2);
     NVIC_SetPriority(PendSV_IRQn, (1 << __NVIC_PRIO_BITS) - 1);
 
     init_systick();
