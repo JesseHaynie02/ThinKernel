@@ -9,6 +9,9 @@
 #define TASK_ONE_STACK_SIZE ( 0x200U )
 #define TASK_TWO_STACK_SIZE ( 0x200U )
 
+#define SEMA_ONE_ID ( 0x0U )
+#define SEMA_TWO_ID ( 0x1U )
+
 uint32_t task1_stack[TASK_ONE_STACK_SIZE];
 Task_t task1_tcb;
 Task_t* task1_tcb_ptr = &task1_tcb;
@@ -16,6 +19,12 @@ Task_t* task1_tcb_ptr = &task1_tcb;
 uint32_t task2_stack[TASK_TWO_STACK_SIZE];
 Task_t task2_tcb;
 Task_t* task2_tcb_ptr = &task2_tcb;
+
+Sem_t sema1;
+Sem_t* sema1_ptr = &sema1;
+
+Sem_t sema2;
+Sem_t* sema2_ptr = &sema2;
 
 // TODO: Remove use of systick counter variable
 
@@ -26,20 +35,41 @@ void task1()
 
     while (1)
     {
-        uint32_t curr_tick = systick_ctr;
+        wait_for_semaphore(SEMA_TWO_ID);
 
-        if ((curr_tick - last_toggle) >= 100)
+        uint32_t curr_tick = 0;
+
+        while (task1_ctr <= 100)
         {
-            last_toggle = curr_tick;
+            curr_tick = systick_ctr;
 
-            GPIOB->ODR ^= GPIO_ODR_3;
-
-            if (++task1_ctr == 100)
+            if ((curr_tick - last_toggle) >= 100)
             {
-                delay_task(10000);
-                task1_ctr = 0;
+                last_toggle = curr_tick;
+
+                GPIOB->ODR ^= GPIO_ODR_3;
+
+                task1_ctr++;
             }
         }
+
+        task1_ctr = 0;
+        post_semaphore(SEMA_ONE_ID);
+
+        // uint32_t curr_tick = systick_ctr;
+
+        // if ((curr_tick - last_toggle) >= 100)
+        // {
+        //     last_toggle = curr_tick;
+
+        //     GPIOB->ODR ^= GPIO_ODR_3;
+
+        //     if (++task1_ctr == 100)
+        //     {
+        //         delay_task(10000);
+        //         task1_ctr = 0;
+        //     }
+        // }
     }
 }
 
@@ -50,20 +80,41 @@ void task2()
 
     while (1)
     {
-        uint32_t curr_tick = systick_ctr;
+        wait_for_semaphore(SEMA_ONE_ID);
 
-        if ((curr_tick - last_toggle) >= 200)
+        uint32_t curr_tick = 0;
+
+        while (task2_ctr <= 50)
         {
-            last_toggle = curr_tick;
+            curr_tick = systick_ctr;
 
-            GPIOB->ODR ^= GPIO_ODR_3;
-
-            if (++task2_ctr == 50)
+            if ((curr_tick - last_toggle) >= 200)
             {
-                delay_task(10000);
-                task2_ctr = 0;
+                last_toggle = curr_tick;
+
+                GPIOB->ODR ^= GPIO_ODR_3;
+
+                task2_ctr++;
             }
         }
+
+        task2_ctr = 0;
+        post_semaphore(SEMA_TWO_ID);
+
+        // uint32_t curr_tick = systick_ctr;
+
+        // if ((curr_tick - last_toggle) >= 200)
+        // {
+        //     last_toggle = curr_tick;
+
+        //     GPIOB->ODR ^= GPIO_ODR_3;
+
+        //     if (++task2_ctr == 50)
+        //     {
+        //         delay_task(10000);
+        //         task2_ctr = 0;
+        //     }
+        // }
     }
 }
 
@@ -76,7 +127,11 @@ void main()
     GPIOB->MODER &= ~(GPIO_MODER_MODER3);
     GPIOB->MODER |= GPIO_MODER_MODER3_0;
 
+    create_semaphore(SEMA_ONE_ID, sema1_ptr, 0);
+    create_semaphore(SEMA_TWO_ID, sema2_ptr, 1);
+
     create_task(TASK_ONE_ID, 0x8, task1_tcb_ptr, task1_stack, TASK_ONE_STACK_SIZE, task1);
     create_task(TASK_TWO_ID, 0x8, task2_tcb_ptr, task2_stack, TASK_TWO_STACK_SIZE, task2);
+
     start_thinkernel();
 }

@@ -32,7 +32,7 @@ void schedule()
 {
     // if no task is ready to run switch to the idle task
     // else get and set the highest priority ready to run task
-    if (!ready_bitmap)
+    if (ready_bitmap == 0)
     {
         highest_prio_task_ptr = idle_task_ptr;
     }

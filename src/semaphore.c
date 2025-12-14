@@ -45,7 +45,10 @@ bool post_semaphore(uint32_t sem_id)
 
     // If semaphore with sem id doesn't exist or semaphore null
     if ( (sem_bitmap & (1U << sem_id)) == 0 || sem_list[sem_id] == NULL )
+    {
+        __set_BASEPRI(BASEPRI_UNMASK_ALL);
         return false;
+    }
 
     Sem_t* semaphore = sem_list[sem_id];
 
@@ -103,7 +106,10 @@ bool wait_for_semaphore(uint32_t sem_id)
     __set_BASEPRI(BASEPRI_MASK_PENDSV_SYSTICK);
 
     if ( (sem_bitmap & (1U << sem_id)) == 0 || sem_list[sem_id] == NULL )
+    {
+        __set_BASEPRI(BASEPRI_UNMASK_ALL);
         return false;
+    }
 
     Sem_t* semaphore = sem_list[sem_id];
 
@@ -124,13 +130,24 @@ bool wait_for_semaphore(uint32_t sem_id)
 
         if (ready_list[running_task->priority] == curr_task_ptr)
         {
-            ready_list[running_task->priority]->prev->next = ready_list[running_task->priority]->next;
-            ready_list[running_task->priority]->next->prev = ready_list[running_task->priority]->prev;
-            ready_list[running_task->priority] = ready_list[running_task->priority]->next;
-            ready_bitmap &= ~(1 << running_task->priority);
+            if (ready_list[running_task->priority] == ready_list[running_task->priority]->next &&
+                ready_list[running_task->priority] == ready_list[running_task->priority]->prev)
+            {
+                ready_list[running_task->priority]->next = NULL;
+                ready_list[running_task->priority]->prev = NULL;
+                ready_list[running_task->priority] = NULL;
+                ready_bitmap &= ~(1 << running_task->priority);
+            }
+            else
+            {
+                ready_list[running_task->priority]->prev->next = ready_list[running_task->priority]->next;
+                ready_list[running_task->priority]->next->prev = ready_list[running_task->priority]->prev;
+                ready_list[running_task->priority] = ready_list[running_task->priority]->next;
+            }
         }
         else
         {
+            __set_BASEPRI(BASEPRI_UNMASK_ALL);
             return false;
         }
 
