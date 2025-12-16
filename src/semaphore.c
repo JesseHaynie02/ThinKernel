@@ -2,7 +2,7 @@
 
 #include "stm32f303x8.h" // TODO: Relocate platform specific calls
 
-#define SEM_VAL_MAX ( 4294967295U )
+#include <stdint.h>
 
 uint32_t sem_bitmap = 0;
 Sem_t* sem_list[MAX_NUM_SEMS];
@@ -54,7 +54,8 @@ bool post_semaphore(uint32_t sem_id)
 
     if (semaphore->wait_list == NULL)
     {
-        if (semaphore->sem_val <= SEM_VAL_MAX - 1U)
+        // Prevent integer overflow
+        if (semaphore->sem_val < UINT32_MAX)
         {
             semaphore->sem_val++;
         }
@@ -120,7 +121,7 @@ bool wait_for_semaphore(uint32_t sem_id)
     else
     {
         Task_t* running_task = curr_task_ptr;
-        Task_t* prev_task = sem_list[sem_id]->wait_list;
+        Task_t* prev_task = NULL;
         Task_t* curr_task = sem_list[sem_id]->wait_list;
         while (curr_task != NULL && curr_task->priority >= running_task->priority)
         {
@@ -147,6 +148,9 @@ bool wait_for_semaphore(uint32_t sem_id)
         }
         else
         {
+            // The running task should always be at the head of
+            // its ready list but if not an error occured within
+            // the kernel, stop and return here.
             __set_BASEPRI(BASEPRI_UNMASK_ALL);
             return false;
         }
@@ -155,13 +159,15 @@ bool wait_for_semaphore(uint32_t sem_id)
         running_task->next = curr_task;
         running_task->prev = NULL;
 
-        if (semaphore->wait_list != NULL)
+        if (prev_task == NULL)
         {
-            prev_task->next = running_task;
+            // Insert at head if list empty or task
+            // enters the list as the new highest priority.
+            semaphore->wait_list = running_task;
         }
         else
         {
-            semaphore->wait_list = running_task;
+            prev_task->next = running_task;
         }
 
         __set_BASEPRI(BASEPRI_UNMASK_ALL);
