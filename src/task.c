@@ -17,6 +17,8 @@ void exit_task()
     while(1) {};
 }
 
+// TODO: init_stack() should be platform agnostic and call the actual platform specific
+// implementation that lives in its specific platform folder.
 void init_stack( Task_t* task, uint32_t* stack_addr, uint32_t stack_size, void (*entry_point)() )
 {
     // Descening stack so location starts at the highest address
@@ -57,6 +59,7 @@ void init_stack( Task_t* task, uint32_t* stack_addr, uint32_t stack_size, void (
     task->stack_limit = stack_addr;
 }
 
+// TODO: Need to make thread safe or disable the ability to create tasks after the call to start_thinkernel().
 bool create_task( uint32_t task_id, uint32_t priority, Task_t* task, uint32_t* stack_addr, uint32_t stack_size, void (*entry_point)() )
 {
     if ( task_id >= MAX_NUM_TASKS || priority >= MAX_PRIORITY )
@@ -64,7 +67,7 @@ bool create_task( uint32_t task_id, uint32_t priority, Task_t* task, uint32_t* s
     // If task with task id already exists
     if ( task_bitmap & (1U << task_id) || task_list[task_id] != NULL )
         return false;
-    if ( entry_point == NULL )
+    if ( task == NULL || entry_point == NULL )
         return false;
     // If stack_addr or stack_size is not 32-bit aligned
     if ( ((uint32_t)stack_addr & 0x3U) != 0 || (stack_size & 0x3U) != 0 )
@@ -105,6 +108,8 @@ bool create_task( uint32_t task_id, uint32_t priority, Task_t* task, uint32_t* s
     return true;
 }
 
+// TODO: Write a function that allows the user to get the current ID of the running task.
+// TODO: Need to make thread safe.
 bool yield_task(uint32_t task_id)
 {
     if (task_id >= MAX_NUM_TASKS)
@@ -127,6 +132,7 @@ bool yield_task(uint32_t task_id)
     Task_t* tail = head->prev;
 
     // Nothing to do
+    // TODO: Is there a better way to handle this case w/o having to return in the middle of the function?
     if (task == tail)
         return true;
 
@@ -146,6 +152,7 @@ bool yield_task(uint32_t task_id)
     }
 
     ready_list[task->priority] = task->next;
+    curr_task_ptr->task_state = TASK_STATE_READY;
 
     // Switch to highest priority ready to run task if it changed
     schedule();
@@ -158,20 +165,17 @@ bool yield_task(uint32_t task_id)
     return true;
 }
 
-// TODO: Do we need to disable context switching?
-
+// TODO: Need to make thread safe.
 bool delay_task(uint32_t ms)
 {
     if (ms == 0)
         return false;
-    // TODO: State should be running only but need to figure out how to update running correctly
-    if (curr_task_ptr->task_state != TASK_STATE_READY)
+    if (curr_task_ptr->task_state != TASK_STATE_RUNNING)
         return false;
     if (curr_task_ptr != ready_list[curr_task_ptr->priority])
         return false;
 
     curr_task_ptr->delay = ms;
-    curr_task_ptr->task_state = TASK_STATE_BLOCKED;
 
     if (curr_task_ptr != curr_task_ptr->next && curr_task_ptr != curr_task_ptr->prev)
     {
@@ -213,6 +217,8 @@ bool delay_task(uint32_t ms)
     {
         delay_list = curr_task_ptr;
     }
+
+    curr_task_ptr->task_state = TASK_STATE_BLOCKED;
 
     // Switch to highest priority ready to run task if it changed
     schedule();

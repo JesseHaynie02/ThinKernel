@@ -52,10 +52,10 @@ bool post_semaphore(uint32_t sem_id)
 
     Sem_t* semaphore = sem_list[sem_id];
 
-    if (semaphore->wait_list == NULL)
+    if ( semaphore->wait_list == NULL )
     {
         // Prevent integer overflow
-        if (semaphore->sem_val < UINT32_MAX)
+        if ( semaphore->sem_val < UINT32_MAX )
         {
             semaphore->sem_val++;
         }
@@ -67,6 +67,7 @@ bool post_semaphore(uint32_t sem_id)
         task->next = NULL;
         task->task_state = TASK_STATE_READY;
 
+        // TODO: Logic to add task to ready list can be extracted into its own function
         Task_t* head = ready_list[task->priority];
         if (head == NULL)
         {

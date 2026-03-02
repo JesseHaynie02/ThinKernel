@@ -40,6 +40,7 @@ void schedule()
     {
         uint32_t idx = 31 - __CLZ(ready_bitmap);
         highest_prio_task_ptr = ready_list[idx];
+        highest_prio_task_ptr->task_state = TASK_STATE_RUNNING;
     }
 }
 
