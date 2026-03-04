@@ -1,31 +1,16 @@
 #include "thinkernel_priv.h"
 
-#include "stm32f303x8.h" // TODO: Relocate platform specific calls
-
 #define TASK_IDLE_SIZE ( 0x48U )
 
 uint32_t idle_stack[TASK_IDLE_SIZE];
 Task_t idle_task;
 Task_t* idle_task_ptr = &idle_task;
 
-void delay(volatile uint32_t count)
-{
-    while (count--) __asm__("nop");
-}
-
 // TODO: Implement low power mode
 void idle_loop()
 {
     bool doNothing = true;
     while(doNothing) {};
-}
-
-void context_switch()
-{
-    // Trigger the PendSV interrupt and wait for the context switch to occur
-    SCB->ICSR |= SCB_ICSR_PENDSVSET_Msk;
-    __DSB();
-    __ISB();
 }
 
 void schedule()
@@ -38,7 +23,7 @@ void schedule()
     }
     else
     {
-        uint32_t idx = 31 - __CLZ(ready_bitmap);
+        uint8_t idx = get_highest_prio_task_idx();
         highest_prio_task_ptr = ready_list[idx];
         highest_prio_task_ptr->task_state = TASK_STATE_RUNNING;
     }
@@ -46,16 +31,7 @@ void schedule()
 
 void start_thinkernel()
 {
-    __set_PSP(0U);
-
-    NVIC_SetPriority(MemoryManagement_IRQn, (1 << __NVIC_PRIO_BITS) - 6);
-    NVIC_SetPriority(BusFault_IRQn, (1 << __NVIC_PRIO_BITS) - 5);
-    NVIC_SetPriority(UsageFault_IRQn, (1 << __NVIC_PRIO_BITS) - 4);
-    NVIC_SetPriority(SVCall_IRQn, (1 << __NVIC_PRIO_BITS) - 3);
-    NVIC_SetPriority(SysTick_IRQn, (1 << __NVIC_PRIO_BITS) - 2);
-    NVIC_SetPriority(PendSV_IRQn, (1 << __NVIC_PRIO_BITS) - 1);
-
-    init_systick();
+    init_platform();
 
     // TODO: Wrap the creation of a task from the kernel into a kernel call
     // that is not available to the API

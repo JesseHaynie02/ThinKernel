@@ -3,9 +3,6 @@
 
 #include "thinkernel.h"
 
-#define BASEPRI_MASK_PENDSV_SYSTICK   14U
-#define BASEPRI_UNMASK_ALL            0U
-
 extern uint32_t task_bitmap;
 extern uint32_t sem_bitmap;
 extern uint32_t ready_bitmap;
@@ -20,8 +17,13 @@ extern Sem_t* sem_list[MAX_NUM_SEMS];
 
 void init_systick();
 void init_stack( Task_t* task, uint32_t* stack_addr, uint32_t stack_size, void (*entry_point)() );
+void init_platform();
 
+void enable_ctx_sw();
+void disable_ctx_sw();
 void context_switch();
+
+uint8_t get_highest_prio_task_idx();
 void schedule();
 
 #endif

@@ -26,6 +26,11 @@ Sem_t* sema1_ptr = &sema1;
 Sem_t sema2;
 Sem_t* sema2_ptr = &sema2;
 
+void delay(volatile uint32_t count)
+{
+    while (count--) __asm__("nop");
+}
+
 // TODO: Remove use of systick counter variable
 
 void task1()

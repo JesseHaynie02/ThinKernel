@@ -14,12 +14,12 @@ bool create_semaphore(uint32_t sem_id, Sem_t* semaphore, uint32_t init_val)
     if ( semaphore == NULL )
         return false;
 
-    __set_BASEPRI(BASEPRI_MASK_PENDSV_SYSTICK);
+    disable_ctx_sw();
 
     // If semaphore with sem id already exists
     if ( sem_bitmap & (1U << sem_id) || sem_list[sem_id] != NULL )
     {
-        __set_BASEPRI(BASEPRI_UNMASK_ALL);
+        enable_ctx_sw();
         return false;
     }
 
@@ -31,7 +31,7 @@ bool create_semaphore(uint32_t sem_id, Sem_t* semaphore, uint32_t init_val)
     sem_bitmap |= (1U << sem_id);
     sem_list[sem_id] = semaphore;
 
-    __set_BASEPRI(BASEPRI_UNMASK_ALL);
+    enable_ctx_sw();
 
     return true;
 }
@@ -41,12 +41,12 @@ bool post_semaphore(uint32_t sem_id)
     if ( sem_id >= MAX_NUM_SEMS )
         return false;
 
-    __set_BASEPRI(BASEPRI_MASK_PENDSV_SYSTICK);
+    disable_ctx_sw();
 
     // If semaphore with sem id doesn't exist or semaphore null
     if ( (sem_bitmap & (1U << sem_id)) == 0 || sem_list[sem_id] == NULL )
     {
-        __set_BASEPRI(BASEPRI_UNMASK_ALL);
+        enable_ctx_sw();
         return false;
     }
 
@@ -87,7 +87,7 @@ bool post_semaphore(uint32_t sem_id)
         ready_bitmap |= (1 << task->priority);
     }
 
-    __set_BASEPRI(BASEPRI_UNMASK_ALL);
+    enable_ctx_sw();
 
     // Switch to highest priority ready to run task if it changed
     schedule();
@@ -105,11 +105,11 @@ bool wait_for_semaphore(uint32_t sem_id)
     if ( sem_id >= MAX_NUM_SEMS )
         return false;
 
-    __set_BASEPRI(BASEPRI_MASK_PENDSV_SYSTICK);
+    disable_ctx_sw();
 
     if ( (sem_bitmap & (1U << sem_id)) == 0 || sem_list[sem_id] == NULL )
     {
-        __set_BASEPRI(BASEPRI_UNMASK_ALL);
+        enable_ctx_sw();
         return false;
     }
 
@@ -152,7 +152,7 @@ bool wait_for_semaphore(uint32_t sem_id)
             // The running task should always be at the head of
             // its ready list but if not an error occured within
             // the kernel, stop and return here.
-            __set_BASEPRI(BASEPRI_UNMASK_ALL);
+            enable_ctx_sw();
             return false;
         }
 
@@ -171,7 +171,7 @@ bool wait_for_semaphore(uint32_t sem_id)
             prev_task->next = running_task;
         }
 
-        __set_BASEPRI(BASEPRI_UNMASK_ALL);
+        enable_ctx_sw();
 
         // Switch to highest priority ready to run task if it changed
         schedule();
