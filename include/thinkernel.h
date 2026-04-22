@@ -11,6 +11,7 @@
 
 typedef struct Task Task_t;
 typedef struct Semaphore Sem_t;
+typedef struct Queue Queue_t;
 
 typedef enum
 {
@@ -39,6 +40,8 @@ struct Semaphore
     struct Task* wait_list;
 };
 
+struct Queue;
+
 // TODO: Remove use of systick_ctr in interface
 extern uint32_t systick_ctr;
 
@@ -50,6 +53,10 @@ void exit_task();
 bool create_semaphore(uint32_t sem_id, Sem_t* semaphore, uint32_t init_val);
 bool post_semaphore(uint32_t sem_id);
 bool wait_for_semaphore(uint32_t sem_id);
+
+bool create_queue(uint32_t queue_length, uint32_t queue_data_size_bytes, Queue_t* queue_rtn);
+bool push_queue(Queue_t* queue, void* data, int32_t ms);
+bool pop_queue(Queue_t* queue, void* data, int32_t ms);
 
 void start_thinkernel();
 
