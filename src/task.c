@@ -131,26 +131,15 @@ bool delay_task(uint32_t ms)
     if (curr_task_ptr != ready_list[curr_task_ptr->priority])
         return false;
 
+    block_task( curr_task_ptr );
+
     curr_task_ptr->delay = ms;
-
-    if (curr_task_ptr != curr_task_ptr->next && curr_task_ptr != curr_task_ptr->prev)
-    {
-        ready_list[curr_task_ptr->priority] = curr_task_ptr->next;
-        curr_task_ptr->prev->next = curr_task_ptr->next;
-        curr_task_ptr->next->prev = curr_task_ptr->prev;
-    }
-    else
-    {
-        ready_list[curr_task_ptr->priority] = NULL;
-        ready_bitmap &= ~(1 << curr_task_ptr->priority);
-    }
-
-    curr_task_ptr->next = NULL;
-    curr_task_ptr->prev = NULL;
 
     Task_t* task = delay_list;
     Task_t* prev = NULL;
 
+    // Find where to insert this task into the delay list
+    // by calculating the delay delta and comparing the offset
     while (task != NULL && curr_task_ptr->delay >= task->delay)
     {
         curr_task_ptr->delay -= task->delay;
@@ -174,8 +163,6 @@ bool delay_task(uint32_t ms)
         delay_list = curr_task_ptr;
     }
 
-    curr_task_ptr->task_state = TASK_STATE_BLOCKED;
-
     // Switch to highest priority ready to run task if it changed
     schedule();
 
@@ -185,4 +172,31 @@ bool delay_task(uint32_t ms)
     }
 
     return true;
+}
+
+// TODO: Need to make thread safe.
+void block_task( Task_t* task )
+{
+    if ( task == NULL )
+        return;
+    if ( task->task_state == TASK_STATE_BLOCKED )
+        return;
+
+    // Remove this task from the ready list
+    if (curr_task_ptr != curr_task_ptr->next && curr_task_ptr != curr_task_ptr->prev)
+    {
+        ready_list[curr_task_ptr->priority] = curr_task_ptr->next;
+        curr_task_ptr->prev->next = curr_task_ptr->next;
+        curr_task_ptr->next->prev = curr_task_ptr->prev;
+    }
+    else
+    {
+        ready_list[curr_task_ptr->priority] = NULL;
+        ready_bitmap &= ~(1 << curr_task_ptr->priority);
+    }
+
+    curr_task_ptr->next = NULL;
+    curr_task_ptr->prev = NULL;
+
+    curr_task_ptr->task_state = TASK_STATE_BLOCKED;
 }

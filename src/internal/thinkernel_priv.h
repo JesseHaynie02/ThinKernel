@@ -23,6 +23,8 @@ void enable_ctx_sw();
 void disable_ctx_sw();
 void context_switch();
 
+void block_task( Task_t* task );
+
 uint8_t get_highest_prio_task_idx();
 void schedule();
 

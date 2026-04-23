@@ -55,8 +55,8 @@ bool post_semaphore(uint32_t sem_id);
 bool wait_for_semaphore(uint32_t sem_id);
 
 bool create_queue(uint32_t queue_length, uint32_t queue_data_size_bytes, Queue_t* queue_rtn);
-bool push_queue(Queue_t* queue, void* data, int32_t ms);
-bool pop_queue(Queue_t* queue, void* data, int32_t ms);
+bool send_queue(Queue_t* queue, void* data, int32_t ms);
+bool receive_queue(Queue_t* queue, void* data, int32_t ms);
 
 void start_thinkernel();
 

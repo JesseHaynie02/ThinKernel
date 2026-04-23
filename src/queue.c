@@ -7,6 +7,9 @@ struct Queue
     uint32_t capacity; // Number of slots in the queue
 
     uint32_t next_free_slot; // 0-based
+
+    uint32_t waiting_to_send_bitmap;
+    uint32_t waiting_to_receive_bitmap;
 };
 
 bool create_queue(uint32_t queue_length, uint32_t queue_data_size_bytes, Queue_t* queue_rtn)
@@ -21,7 +24,7 @@ bool create_queue(uint32_t queue_length, uint32_t queue_data_size_bytes, Queue_t
     return true;
 }
 
-bool push_queue(Queue_t* queue, void* data, int32_t ms)
+bool send_queue(Queue_t* queue, void* data, int32_t ms)
 {
     if ( queue == NULL || data == NULL )
         return false;
@@ -31,22 +34,38 @@ bool push_queue(Queue_t* queue, void* data, int32_t ms)
     // If queue full
     if ( queue->next_free_slot == ( queue->capacity - 1 ) )
     {
-        // enable ctx switching
-
-        // don't block on full queue
+        // don't block on full queue so return
         if ( ms == 0 )
         {
             return false;
         }
-        else if ( ms < 0 )
+
+        // Add task id to waiting_to_send_bitmap
+
+        // enable ctx switching
+
+        if ( ms > 0 )
         {
-            // block queue until there is an empty slot
+            // Delay task until either delay expires
+            // or slot becomes available.
+            delay_task( ms );
         }
-        else // ms > 0
+        else // ms < 0
         {
-            // block queue for time of ms or
-            // if an empty slot becomes available
+            // Block task until slot becomes available.
+            block_task( curr_task_ptr );
+
+            schedule();
+
+            if (curr_task_ptr != highest_prio_task_ptr)
+            {
+                context_switch();
+            }
         }
+
+        // If queue still full then return
+        if ( queue->next_free_slot == ( queue->capacity - 1 ) )
+            return false;
 
         // disable ctx switching
     }
@@ -63,7 +82,7 @@ bool push_queue(Queue_t* queue, void* data, int32_t ms)
     return true;
 }
 
-bool pop_queue(Queue_t* queue, void* data, int32_t ms)
+bool receive_queue(Queue_t* queue, void* data, int32_t ms)
 {
 
 }
