@@ -65,7 +65,6 @@ bool post_semaphore(uint32_t sem_id)
         Task_t* task = semaphore->wait_list;
         semaphore->wait_list = semaphore->wait_list->next;
         task->next = NULL;
-        task->task_state = TASK_STATE_READY;
 
         // TODO: Logic to add task to ready list can be extracted into its own function
         Task_t* head = ready_list[task->priority];
@@ -84,7 +83,9 @@ bool post_semaphore(uint32_t sem_id)
             tail->next = task;
             head->prev = task;
         }
+
         ready_bitmap |= (1 << task->priority);
+        task->task_state = TASK_STATE_READY;
     }
 
     enable_ctx_sw();

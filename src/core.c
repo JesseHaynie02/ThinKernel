@@ -23,7 +23,7 @@ void schedule()
     }
     else
     {
-        uint8_t idx = get_highest_prio_task_idx();
+        uint8_t idx = get_highest_prio_task_idx(ready_bitmap);
         highest_prio_task_ptr = ready_list[idx];
         highest_prio_task_ptr->task_state = TASK_STATE_RUNNING;
     }

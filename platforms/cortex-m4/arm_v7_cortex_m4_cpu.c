@@ -95,9 +95,9 @@ void context_switch()
     __ISB();
 }
 
-uint8_t get_highest_prio_task_idx()
+uint8_t get_highest_prio_task_idx(uint32_t task_bitmap)
 {
-    return (31 - __CLZ(ready_bitmap));
+    return (31 - __CLZ(task_bitmap));
 }
 
 void systick_handler()
