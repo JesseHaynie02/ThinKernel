@@ -7,7 +7,6 @@ Task_t* curr_task_ptr = NULL;
 Task_t* highest_prio_task_ptr = NULL;
 Task_t* ready_list[MAX_NUM_TASKS];
 Task_t* task_list[MAX_NUM_TASKS];
-Task_t* delay_list = NULL;
 
 // TODO: Implement proper handling of a task that ended up here
 void exit_task()
@@ -21,63 +20,45 @@ bool create_task( uint32_t task_id, uint32_t priority, Task_t* task, uint32_t* s
     if ( task_id >= MAX_NUM_TASKS || priority >= MAX_PRIORITY )
         return false;
     // If task with task id already exists
-    if ( task_bitmap & (1U << task_id) || task_list[task_id] != NULL )
+    if ( task_bitmap & ( 1U << task_id ) || task_list[task_id] != NULL )
         return false;
     if ( task == NULL || entry_point == NULL )
         return false;
     // If stack_addr or stack_size is not 32-bit aligned
-    if ( ((uint32_t)stack_addr & 0x3U) != 0 || (stack_size & 0x3U) != 0 )
+    if ( ( (uint32_t)stack_addr & 0x3U ) != 0 || (stack_size & 0x3U) != 0 )
         return false;
 
     // Register new task
-    task_bitmap |= (1U << task_id);
+    task_bitmap |= ( 1U << task_id );
     task_list[task_id] = task;
 
     init_stack(task, stack_addr, stack_size, entry_point);
 
     task->task_id = task_id;
     task->priority = priority;
-    task->task_state = TASK_STATE_READY;
-    task->delay = 0;
+    task->task_state = TASK_STATE_INITIALIZE;
     task->next = NULL;
     task->prev = NULL;
 
-    // Insert into ready list update ready bitmap
-    Task_t* head = ready_list[task->priority];
-    if (head == NULL)
-    {
-        task->prev = task;
-        task->next = task;
-        ready_list[task->priority] = task;
-    }
-    else
-    {
-        Task_t* tail = head->prev;
-
-        task->next = head;
-        task->prev = tail;
-        tail->next = task;
-        head->prev = task;
-    }
-    ready_bitmap |= (1 << task->priority);
+    if ( !change_task_state( task, TASK_STATE_READY, NULL ) )
+        return false;
 
     return true;
 }
 
-// TODO: Write a function that allows the user to get the current ID of the running task.
 // TODO: Need to make thread safe.
 bool yield_task(uint32_t task_id)
 {
-    if (task_id >= MAX_NUM_TASKS)
+    if ( task_id >= MAX_NUM_TASKS )
         return false;
 
     Task_t* task = task_list[task_id];
 
     // If task is not registered in bitmap or task is null
-    if ( (task_bitmap & (1 << task_id)) == 0 || task == NULL )
+    if ( ( task_bitmap & ( 1 << task_id ) ) == 0 || task == NULL )
         return false;
     // If there are no tasks at the tasks priority or if the head is null
-    if ( (ready_bitmap & (1 << task->priority)) == 0 || ready_list[task->priority] == NULL )
+    if ( ( ready_bitmap & ( 1 << task->priority ) ) == 0 || ready_list[task->priority] == NULL )
         return false;
     // If task is blocked or terminated
     if ( task->task_state != TASK_STATE_READY && task->task_state != TASK_STATE_RUNNING )
@@ -87,12 +68,10 @@ bool yield_task(uint32_t task_id)
     Task_t* head = ready_list[task->priority];
     Task_t* tail = head->prev;
 
-    // Nothing to do
-    // TODO: Is there a better way to handle this case w/o having to return in the middle of the function?
-    if (task == tail)
+    if ( task == tail )
         return true;
 
-    if (task == head)
+    if ( task == head )
     {
         ready_list[task->priority] = head->next;
     }
@@ -113,90 +92,5 @@ bool yield_task(uint32_t task_id)
     // Switch to highest priority ready to run task if it changed
     schedule();
 
-    if (curr_task_ptr != highest_prio_task_ptr)
-    {
-        context_switch();
-    }
-
     return true;
-}
-
-// TODO: Need to make thread safe.
-bool delay_task(uint32_t ms)
-{
-    if (ms == 0)
-        return false;
-    if (curr_task_ptr->task_state != TASK_STATE_RUNNING)
-        return false;
-    if (curr_task_ptr != ready_list[curr_task_ptr->priority])
-        return false;
-
-    block_task( curr_task_ptr );
-
-    curr_task_ptr->delay = ms;
-
-    Task_t* task = delay_list;
-    Task_t* prev = NULL;
-
-    // Find where to insert this task into the delay list
-    // by calculating the delay delta and comparing the offset
-    while (task != NULL && curr_task_ptr->delay >= task->delay)
-    {
-        curr_task_ptr->delay -= task->delay;
-        prev = task;
-        task = task->next;
-    }
-
-    curr_task_ptr->next = task;
-
-    if (task)
-    {
-        task->delay -= curr_task_ptr->delay;
-    }
-
-    if (prev)
-    {
-        prev->next = curr_task_ptr;
-    }
-    else
-    {
-        delay_list = curr_task_ptr;
-    }
-
-    // Switch to highest priority ready to run task if it changed
-    schedule();
-
-    if (curr_task_ptr != highest_prio_task_ptr)
-    {
-        context_switch();
-    }
-
-    return true;
-}
-
-// TODO: Need to make thread safe.
-void block_task( Task_t* task )
-{
-    if ( task == NULL )
-        return;
-    if ( task->task_state == TASK_STATE_BLOCKED )
-        return;
-
-    // Remove this task from the ready list
-    if (curr_task_ptr != curr_task_ptr->next && curr_task_ptr != curr_task_ptr->prev)
-    {
-        ready_list[curr_task_ptr->priority] = curr_task_ptr->next;
-        curr_task_ptr->prev->next = curr_task_ptr->next;
-        curr_task_ptr->next->prev = curr_task_ptr->prev;
-    }
-    else
-    {
-        ready_list[curr_task_ptr->priority] = NULL;
-        ready_bitmap &= ~(1 << curr_task_ptr->priority);
-    }
-
-    curr_task_ptr->next = NULL;
-    curr_task_ptr->prev = NULL;
-
-    curr_task_ptr->task_state = TASK_STATE_BLOCKED;
 }
