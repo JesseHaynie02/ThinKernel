@@ -116,6 +116,8 @@ static bool remove_from_blocked_list( Task_t** blocked_list, Task_t* task )
 
     task->next = NULL;
     task->prev = NULL;
+
+    return true;
 }
 
 static bool ready_to_running( Task_t* task )

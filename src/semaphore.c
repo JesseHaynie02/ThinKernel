@@ -62,12 +62,13 @@ bool post_semaphore(uint32_t sem_id)
     }
     else
     {
-        if ( !change_task_state( curr_task_ptr, TASK_STATE_READY,
+        if ( !change_task_state( semaphore->wait_list, TASK_STATE_READY,
                                  &semaphore->wait_list ) )
+        {
+            enable_ctx_sw();
             return false;
+        }
     }
-
-    enable_ctx_sw();
 
     // Switch to highest priority ready to run task if it changed
     schedule();
@@ -96,9 +97,12 @@ bool wait_for_semaphore(uint32_t sem_id)
     }
     else
     {
-        if ( change_task_state( curr_task_ptr, TASK_STATE_WAITING_SEMA,
+        if ( !change_task_state( curr_task_ptr, TASK_STATE_WAITING_SEMA,
                                 &semaphore->wait_list ) )
+        {
+            enable_ctx_sw();
             return false;
+        }
     }
 
     enable_ctx_sw();
