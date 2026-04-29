@@ -62,41 +62,15 @@ bool post_semaphore(uint32_t sem_id)
     }
     else
     {
-        Task_t* task = semaphore->wait_list;
-        semaphore->wait_list = semaphore->wait_list->next;
-        task->next = NULL;
-
-        // TODO: Logic to add task to ready list can be extracted into its own function
-        Task_t* head = ready_list[task->priority];
-        if (head == NULL)
-        {
-            task->prev = task;
-            task->next = task;
-            ready_list[task->priority] = task;
-        }
-        else
-        {
-            Task_t* tail = head->prev;
-
-            task->next = head;
-            task->prev = tail;
-            tail->next = task;
-            head->prev = task;
-        }
-
-        ready_bitmap |= (1 << task->priority);
-        task->task_state = TASK_STATE_READY;
+        if ( !change_task_state( curr_task_ptr, TASK_STATE_READY,
+                                 &semaphore->wait_list ) )
+            return false;
     }
 
     enable_ctx_sw();
 
     // Switch to highest priority ready to run task if it changed
     schedule();
-
-    if (curr_task_ptr != highest_prio_task_ptr)
-    {
-        context_switch();
-    }
 
     return true;
 }
@@ -122,66 +96,15 @@ bool wait_for_semaphore(uint32_t sem_id)
     }
     else
     {
-        Task_t* running_task = curr_task_ptr;
-        Task_t* prev_task = NULL;
-        Task_t* curr_task = sem_list[sem_id]->wait_list;
-        while (curr_task != NULL && curr_task->priority >= running_task->priority)
-        {
-            prev_task = curr_task;
-            curr_task = curr_task->next;
-        }
-
-        if (ready_list[running_task->priority] == curr_task_ptr)
-        {
-            if (ready_list[running_task->priority] == ready_list[running_task->priority]->next &&
-                ready_list[running_task->priority] == ready_list[running_task->priority]->prev)
-            {
-                ready_list[running_task->priority]->next = NULL;
-                ready_list[running_task->priority]->prev = NULL;
-                ready_list[running_task->priority] = NULL;
-                ready_bitmap &= ~(1 << running_task->priority);
-            }
-            else
-            {
-                ready_list[running_task->priority]->prev->next = ready_list[running_task->priority]->next;
-                ready_list[running_task->priority]->next->prev = ready_list[running_task->priority]->prev;
-                ready_list[running_task->priority] = ready_list[running_task->priority]->next;
-            }
-        }
-        else
-        {
-            // The running task should always be at the head of
-            // its ready list but if not an error occured within
-            // the kernel, stop and return here.
-            enable_ctx_sw();
+        if ( change_task_state( curr_task_ptr, TASK_STATE_WAITING_SEMA,
+                                &semaphore->wait_list ) )
             return false;
-        }
-
-        running_task->task_state = TASK_STATE_BLOCKED;
-        running_task->next = curr_task;
-        running_task->prev = NULL;
-
-        if (prev_task == NULL)
-        {
-            // Insert at head if list empty or task
-            // enters the list as the new highest priority.
-            semaphore->wait_list = running_task;
-        }
-        else
-        {
-            prev_task->next = running_task;
-        }
-
-        enable_ctx_sw();
-
-        // Switch to highest priority ready to run task if it changed
-        schedule();
-
-        if (curr_task_ptr != highest_prio_task_ptr)
-        {
-            context_switch();
-        }
     }
+
+    enable_ctx_sw();
+
+    // Switch to highest priority ready to run task if it changed
+    schedule();
 
     return true;
 }

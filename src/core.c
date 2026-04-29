@@ -17,15 +17,24 @@ void schedule()
 {
     // if no task is ready to run switch to the idle task
     // else get and set the highest priority ready to run task
-    if (ready_bitmap == 0)
+    if ( ready_bitmap == 0 )
     {
         highest_prio_task_ptr = idle_task_ptr;
     }
     else
     {
-        uint8_t idx = get_highest_prio_task_idx(ready_bitmap);
+        uint8_t idx = get_highest_bitmap_idx(ready_bitmap);
         highest_prio_task_ptr = ready_list[idx];
-        highest_prio_task_ptr->task_state = TASK_STATE_RUNNING;
+    }
+
+    // If task state did not change to running due to error or curr_task_ptr
+    // is still the highest_prio_task_ptr then no need to reschedule it.
+    if ( change_task_state( highest_prio_task_ptr, TASK_STATE_RUNNING, NULL ) )
+        return;
+
+    if ( curr_task_ptr != highest_prio_task_ptr )
+    {
+        context_switch();
     }
 }
 
@@ -43,5 +52,4 @@ void start_thinkernel()
     idle_task_ptr->prev = NULL;
 
     schedule();
-    context_switch();
 }

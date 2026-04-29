@@ -17,7 +17,12 @@ typedef enum
 {
     TASK_STATE_RUNNING,
     TASK_STATE_READY,
-    TASK_STATE_BLOCKED,
+    TASK_STATE_DELAY,
+    TASK_STATE_WAITING_RECV,
+    TASK_STATE_WAITING_SEND,
+    TASK_STATE_WAITING_SEMA,
+    TASK_STATE_PREEMPTED,
+    TASK_STATE_INITIALIZE,
     TASK_STATE_TERMINATED
 } TaskState_t;
 
@@ -28,7 +33,6 @@ struct Task
     uint32_t task_id;
     uint32_t priority;
     TaskState_t task_state;
-    uint32_t delay;
     struct Task* next;
     struct Task* prev;
 };
