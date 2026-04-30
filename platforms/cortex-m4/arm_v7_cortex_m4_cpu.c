@@ -95,7 +95,7 @@ void context_switch()
     __ISB();
 }
 
-uint8_t get_highest_bitmap_idx(uint32_t task_bitmap)
+uint8_t get_highest_bitmap_idx( uint32_t task_bitmap )
 {
     return (31 - __CLZ(task_bitmap));
 }

@@ -26,7 +26,7 @@ bool change_task_state( Task_t* task, TaskState_t change_to_state, Task_t** task
 
 void service_timers();
 
-uint8_t get_highest_bitmap_idx( ready_bitmap );
+uint8_t get_highest_bitmap_idx( uint32_t task_bitmap );
 void schedule();
 
 #endif

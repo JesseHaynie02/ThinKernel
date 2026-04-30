@@ -59,7 +59,7 @@ bool delay_task( uint32_t ms )
     timer->task = curr_task_ptr;
 
     Timer_t* next_timer = delay_list;
-    Task_t* prev_timer = NULL;
+    Timer_t* prev_timer = NULL;
 
     // Find where to insert this timer into the delay list
     // by calculating the delay delta and comparing the offset
