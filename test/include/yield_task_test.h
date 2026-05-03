@@ -2,10 +2,9 @@
 #define YIELD_TASK_TEST_H
 
 #include "thinkernel.h"
-#include "stm32f303x8.h"
 
-#define YIELD_TASK_ONE_ID ( 0x0U )
-#define YIELD_TASK_TWO_ID ( 0x1U )
+#define YIELD_TASK_ONE_ID ( 0x1U )
+#define YIELD_TASK_TWO_ID ( 0x2U )
 
 #define YIELD_TASK_ONE_STACK_SIZE ( 0x200U )
 #define YIELD_TASK_TWO_STACK_SIZE ( 0x200U )

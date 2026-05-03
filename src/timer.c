@@ -13,7 +13,7 @@ struct Timer
     struct Timer* prev;
 };
 
-uint32_t timer_bitmap = 0xFFFFU;
+uint32_t timer_bitmap = 0xFFFFFFFFU;
 Timer_t timer_list[MAX_NUM_TIMERS];
 Timer_t* delay_list = NULL;
 
@@ -116,6 +116,7 @@ void service_timers()
         }
         timer->next = NULL;
         timer->prev = NULL;
+        timer->delay = 0;
 
         change_task_state( timer->task, TASK_STATE_READY, NULL );
         return_timer_instance( timer->timer_id );

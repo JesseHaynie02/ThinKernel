@@ -102,6 +102,9 @@ static bool insert_into_blocked_list( Task_t** blocked_list, Task_t* task )
 
 static bool remove_from_blocked_list( Task_t** blocked_list, Task_t* task )
 {
+    // Delay list is handled by timer object so just return true
+    if ( task->task_state == TASK_STATE_DELAY )
+        return true;
     if ( blocked_list == NULL )
         return false;
 
@@ -122,7 +125,8 @@ static bool remove_from_blocked_list( Task_t** blocked_list, Task_t* task )
 
 static bool ready_to_running( Task_t* task )
 {
-    if ( task->task_state != TASK_STATE_READY )
+    if ( task->task_state != TASK_STATE_READY &&
+         task->task_state != TASK_STATE_PREEMPTED )
         return false;
 
     // If the currently running task is still the highest
@@ -134,16 +138,8 @@ static bool ready_to_running( Task_t* task )
     if ( highest_prio_task_ptr != task )
         return false;
 
-    if ( !change_task_state( curr_task_ptr, TASK_STATE_PREEMPTED, NULL ) )
-        return false;
-
-    return true;
-}
-
-static bool running_to_preempted( Task_t* task )
-{
-    if ( task->task_state != TASK_STATE_RUNNING )
-        return false;
+    if ( curr_task_ptr->task_state == TASK_STATE_RUNNING )
+        curr_task_ptr->task_state = TASK_STATE_PREEMPTED;
 
     return true;
 }
@@ -200,9 +196,6 @@ bool change_task_state( Task_t* task, TaskState_t change_to_state, Task_t** task
     {
         case TASK_STATE_RUNNING:
             status = ready_to_running( task );
-            break;
-        case TASK_STATE_PREEMPTED:
-            status = running_to_preempted( task );
             break;
         case TASK_STATE_DELAY:
             status = running_to_delayed( task );

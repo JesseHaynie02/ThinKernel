@@ -29,7 +29,7 @@ void schedule()
 
     // If task state did not change to running due to error or curr_task_ptr
     // is still the highest_prio_task_ptr then no need to reschedule it.
-    if ( change_task_state( highest_prio_task_ptr, TASK_STATE_RUNNING, NULL ) )
+    if ( !change_task_state( highest_prio_task_ptr, TASK_STATE_RUNNING, NULL ) )
         return;
 
     if ( curr_task_ptr != highest_prio_task_ptr )
@@ -47,9 +47,11 @@ void start_thinkernel()
     init_stack(idle_task_ptr, idle_stack, TASK_IDLE_SIZE, idle_loop);
     idle_task_ptr->task_id = 0;
     idle_task_ptr->priority = 0;
-    idle_task_ptr->task_state = TASK_STATE_READY;
+    idle_task_ptr->task_state = TASK_STATE_RUNNING;
     idle_task_ptr->next = NULL;
     idle_task_ptr->prev = NULL;
+
+    curr_task_ptr = idle_task_ptr;
 
     schedule();
 }
