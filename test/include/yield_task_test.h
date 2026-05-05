@@ -6,8 +6,8 @@
 #define YIELD_TASK_ONE_ID ( 0x1U )
 #define YIELD_TASK_TWO_ID ( 0x2U )
 
-#define YIELD_TASK_ONE_STACK_SIZE ( 0x200U )
-#define YIELD_TASK_TWO_STACK_SIZE ( 0x200U )
+#define YIELD_TASK_ONE_STACK_SIZE ( 0x100U )
+#define YIELD_TASK_TWO_STACK_SIZE ( 0x100U )
 
 extern uint32_t yield1_stack[];
 extern Task_t* yield1_tcb_ptr;

@@ -35,9 +35,6 @@ void main()
     GPIOB->MODER &= ~(GPIO_MODER_MODER3);
     GPIOB->MODER |= GPIO_MODER_MODER3_0;
 
-    // create_semaphore(SEMA_ONE_ID, sema1_ptr, 0);
-    // create_semaphore(SEMA_TWO_ID, sema2_ptr, 1);
-
 #ifdef TEST_YIELD_TASK
     create_task(YIELD_TASK_ONE_ID, 8, yield1_tcb_ptr, yield1_stack, YIELD_TASK_ONE_STACK_SIZE, yield1_task_test);
     create_task(YIELD_TASK_TWO_ID, 8, yield2_tcb_ptr, yield2_stack, YIELD_TASK_TWO_STACK_SIZE, yield2_task_test);
@@ -46,6 +43,14 @@ void main()
 #ifdef TEST_DELAY_TASK
     create_task(DELAY_TASK_THREE_ID, 9, delay3_tcb_ptr, delay3_stack, DELAY_TASK_THREE_STACK_SIZE, delay3_task_test);
     create_task(DELAY_TASK_FOUR_ID, 10, delay4_tcb_ptr, delay4_stack, DELAY_TASK_FOUR_STACK_SIZE, delay4_task_test);
+#endif
+
+#ifdef TEST_SEMAPHORE
+    create_semaphore(SEMA_ONE_ID, sema1_ptr, 1);
+    create_semaphore(SEMA_TWO_ID, sema2_ptr, 0);
+
+    create_task(SEMA_TASK_FIVE_ID, 11, sema5_tcb_ptr, sema5_stack, SEMA_TASK_FIVE_STACK_SIZE, sema5_task_test);
+    create_task(SEMA_TASK_SIX_ID, 12, sema6_tcb_ptr, sema6_stack, SEMA_TASK_SIX_STACK_SIZE, sema6_task_test);
 #endif
 
     start_thinkernel();

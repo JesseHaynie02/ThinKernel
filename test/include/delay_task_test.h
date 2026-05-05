@@ -6,8 +6,8 @@
 #define DELAY_TASK_THREE_ID ( 0x3U )
 #define DELAY_TASK_FOUR_ID ( 0x4U )
 
-#define DELAY_TASK_THREE_STACK_SIZE ( 0x200U )
-#define DELAY_TASK_FOUR_STACK_SIZE ( 0x200U )
+#define DELAY_TASK_THREE_STACK_SIZE ( 0x100U )
+#define DELAY_TASK_FOUR_STACK_SIZE ( 0x100U )
 
 extern uint32_t delay3_stack[];
 extern Task_t* delay3_tcb_ptr;
