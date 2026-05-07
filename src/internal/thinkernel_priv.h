@@ -25,6 +25,8 @@ void context_switch();
 bool change_task_state( Task_t* task, TaskState_t change_to_state, Task_t** task_list );
 
 void service_timers();
+bool set_timer( uint32_t ms, bool shouldSchedule );
+bool clear_timer( Task_t* task );
 
 uint8_t get_highest_bitmap_idx( uint32_t task_bitmap );
 void schedule();

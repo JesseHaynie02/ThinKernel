@@ -39,14 +39,21 @@ static void return_timer_instance( uint8_t timer_id )
     timer_bitmap |= ( 1U << timer_id );
 }
 
-// TODO: Need to make thread safe.
-bool delay_task( uint32_t ms )
+static bool is_task_delayable( uint32_t ms )
 {
     if ( ms == 0 )
         return false;
     if ( curr_task_ptr->task_state != TASK_STATE_RUNNING )
         return false;
     if ( curr_task_ptr != ready_list[curr_task_ptr->priority] )
+        return false;
+
+    return true;
+}
+
+bool set_timer( uint32_t ms, bool shouldSchedule )
+{
+    if ( !is_task_delayable( ms ) )
         return false;
 
     uint8_t timer_id;
@@ -89,15 +96,71 @@ bool delay_task( uint32_t ms )
         delay_list = timer;
     }
 
-    if ( !change_task_state( timer->task, TASK_STATE_DELAY, NULL ) )
-        return false;
+    if ( shouldSchedule )
+    {
+        if ( !change_task_state( timer->task, TASK_STATE_DELAY, NULL ) )
+        {
+            return_timer_instance(timer->timer_id);
+            return false;
+        }
 
-    // Switch to highest priority ready to run task if it changed
-    schedule();
+        enable_ctx_sw();
+
+        // Switch to highest priority ready to run task if it changed
+        schedule();
+    }
 
     return true;
 }
 
+bool clear_timer( Task_t* task )
+{
+    if ( task == NULL )
+        return false;
+
+    // Removes first matching timer only
+    Timer_t* curr_timer = delay_list;
+    while ( curr_timer != NULL && curr_timer->task != task )
+    {
+        curr_timer = curr_timer->next;
+    }
+
+    if ( curr_timer == NULL )
+        return false;
+
+    if ( curr_timer->next != NULL )
+        curr_timer->next->delay += curr_timer->delay;
+
+    // Unlink from list
+    if ( curr_timer->prev != NULL )
+        curr_timer->prev->next = curr_timer->next;
+    else
+        delay_list = curr_timer->next;
+
+    if ( curr_timer->next != NULL )
+        curr_timer->next->prev = curr_timer->prev;
+
+    // Clean up timer
+    curr_timer->next = NULL;
+    curr_timer->prev = NULL;
+    curr_timer->task = NULL;
+    curr_timer->delay = 0;
+
+    return_timer_instance( curr_timer->timer_id );
+
+    return true;
+}
+
+bool delay_task( uint32_t ms )
+{
+    disable_ctx_sw();
+    bool status = set_timer( ms, true );
+    enable_ctx_sw();
+
+    return status;
+}
+
+// Called from systick ISR context
 void service_timers()
 {
     if ( delay_list == NULL )
